@@ -21,11 +21,15 @@ const IMAGES_UPLOAD_ARR = [
     'planets_920x760px.png',
     'black_hole_right_320x320px.png',
     'player_74x100px_16frames.png',
+    'player_bullet_10x40px.png',
+    'asteroid_white_90x108px_29frames.png',
+    'explosion_200x200px_16frames.png',
 ];
 
 // список загружаемых звуков
 const SOUNDS_UPLOAD_ARR = [
     'se_laser_shut.mp3',
+    'se_explosion.mp3',
 ];
 
 // счетчик количества загруженных игровых ресурсов

@@ -89,17 +89,126 @@ class Player extends SpriteSheet {
         this.hp  = 100;
         this.score = 0;
         this.speed = 0.5;
+        this.size = 36;
+        this.bulletsArr = [];
+        this.shutTimeout = 1000;
+        this.shutTime = this.shutTimeout;
     }
     update(dt) {
         moveTo(this, gameCursor, this.speed*dt );
         this.drawWithAnimation(dt);
         if (CURSOR.isOnClick) playSound('se_laser_shut.mp3');
+
+        this.shutTime-=dt;
+        if (this.shutTime<=0){
+            this.shutTime+=this.shutTimeout;
+            let bullet = new PlayerBullet(this.x,this.y);
+            this.bulletsArr.push(bullet);
+            playSound('se_laser_shut.mp3');
+        }
+
+        for(let i =0; i<this.bulletsArr.length; i++) this.bulletsArr[i].update(dt);
+        this.bulletsArr = getExistsObjectsFromArr(this.bulletsArr);
+    }
+
+    addDamage(damage){
+        this.hp -= damage;
+        if(this.hp<0)this.hp=0;
+        if(this.hp===0){
+            ex.push(new Explosion(this.x, this.y));
+            playSound('se_explosion.mp3');
+            this.y = -vh;
+        }
+        playerHp.render(`HP:${player.hp}%`);
     }
 }
+
+
+
+class PlayerBullet extends Sprite{ 
+    constructor(x, y){
+        super('player_bullet_10x40px.png', x, y);
+        this.speed = 1;
+        this.isExist = true;
+    }
+    update(dt) {
+        this.y-=this.speed*dt;
+        if (this.y+20<0) this.isExist=false;
+        else this.draw();
+    }
+}
+
+class Asteroid extends SpriteSheet{
+    constructor(x, y){
+        super('asteroid_white_90x108px_29frames.png', x, y, 90, 108, 29, 60);
+        this.direction = Math.random()*_2PI;
+        this.speed = 0.2+Math.random()*0.2;
+        this.sideSpeed = -0.1+0.2*Math.random();
+        this.size = 45;
+        this.isExist=true
+    }
+    update(dt) {
+        this.y += this.speed*dt;
+        this.x += this.sideSpeed*dt;
+
+        if (this.y>vh) this.isExist = false;
+
+        for(let i =0; i<player.bulletsArr.length; i++){
+            if(getDistance(this, player.bulletsArr[i])<this.size){
+                this.isExist = false;
+                player.bulletsArr[i].isExist = false;
+                maxAsteroids += 1;
+                ex.push(new Explosion(this.x, this.y));
+                playSound('se_explosion.mp3');
+                player.score+=5;
+                playerScore.render(`SCORE:${player.score}`)
+            }
+        }
+
+        if(getDistance(this, player)<this.size+player.size){
+            this.isExist = false;
+            player.addDamage(10) ;
+            ex.push(new Explosion(this.x, this.y));
+            playSound('se_explosion.mp3');
+            
+        }
+
+
+        this.drawWithAnimation(dt);
+    }
+}
+
+class Explosion extends SpriteSheet{
+    constructor(x,y){
+        super('explosion_200x200px_16frames.png', x, y, 200, 200, 16, 60);
+        this.isExist = true;
+
+    }
+    update(dt){
+        if (this.frame === 15) this.isExist = false;
+        this.drawWithAnimation(dt);
+        
+    }
+}
+
+let ex = []
+
+let maxAsteroids = 5;
+let asteroidsArr = [];
+function addAsteroid(){
+    let x=Math.random()*vw;
+    let y = -110;
+    let a = new Asteroid(x, y);
+    asteroidsArr.push(a);
+}
+
 
 const planet = new Bg ('planets_920x760px.png', vcx, vcy, 0.1);
 const blackHoleRight = new Bg ('black_hole_right_320x320px.png', vw-160, -vh, 0.08);
 const player = new Player();
+const playerHp = new Text(`HP:${player.hp}%`, vw-150, vh-30,25, '#00ff00')
+const playerScore = new Text(`SCORE:${player.score}`, 5, vh-30,25,  '#00ff00')
+
 // Игровой курсор
 class GameCursor extends SpriteSheet {
     constructor() {
@@ -131,5 +240,18 @@ function gameLoop(dt) {
 
     // обновляем игровые объекты
     gameCursor.update(dt);
-    player.update(dt);
+    
+    for(let i = 0; i<asteroidsArr.length; i++) asteroidsArr[i].update(dt);
+    asteroidsArr = getExistsObjectsFromArr(asteroidsArr);
+    if(asteroidsArr.length<maxAsteroids)addAsteroid();
+
+
+    if(player.hp>0)player.update(dt);
+
+    for(let i = 0; i<ex.length; i++) ex[i].update(dt);
+    ex = getExistsObjectsFromArr(ex);
+
+    playerHp.draw();
+
+    playerScore.draw();
 }
