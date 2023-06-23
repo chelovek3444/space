@@ -24,6 +24,7 @@ const IMAGES_UPLOAD_ARR = [
     'player_bullet_10x40px.png',
     'asteroid_white_90x108px_29frames.png',
     'explosion_200x200px_16frames.png',
+    'player_rocket_30x12px.png',
 ];
 
 // список загружаемых звуков

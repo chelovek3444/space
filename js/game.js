@@ -90,9 +90,13 @@ class Player extends SpriteSheet {
         this.score = 0;
         this.speed = 0.5;
         this.size = 36;
+
         this.bulletsArr = [];
         this.shutTimeout = 1000;
         this.shutTime = this.shutTimeout;
+
+        this.rocketsArr = [];
+        this.rockets = 1;
     }
     update(dt) {
         moveTo(this, gameCursor, this.speed*dt );
@@ -106,9 +110,20 @@ class Player extends SpriteSheet {
             this.bulletsArr.push(bullet);
             playSound('se_laser_shut.mp3');
         }
-
         for(let i =0; i<this.bulletsArr.length; i++) this.bulletsArr[i].update(dt);
         this.bulletsArr = getExistsObjectsFromArr(this.bulletsArr);
+
+        
+        if ( this.rockets > 0 && (KEY.space || CURSOR.isOnClick) ){
+            let rocket = new PlayerRocket(this.x, this.y);
+            this.rocketsArr.push(rocket);
+            this.rockets --;
+            console.log(this.rocketsArr);
+        }
+
+
+        for(let i =0; i<this.rocketsArr.length; i++) this.rocketsArr[i].update(dt);
+        this.rocketsArr = getExistsObjectsFromArr(this.rocketsArr);
     }
 
     addDamage(damage){
@@ -138,6 +153,36 @@ class PlayerBullet extends Sprite{
     }
 }
 
+class PlayerRocket extends Sprite{
+    constructor(x, y){
+        super('player_rocket_30x12px.png', x, y);
+        this.speed = 0.5;
+        this.isExist = true;
+    }
+    update(dt){
+        let target = null;
+        let distance = Infinity;
+        for (let i =0; i<asteroidsArr.length; i++){
+            let d = getDistance(this, asteroidsArr[i]);
+            if (d<distance){
+                target=asteroidsArr[i];
+                distance = d;
+            }
+        }
+        if(!target){
+            this.isExist=false;
+            player.rockets++;
+            ex.push(new Explosion(this.x, this.y));
+            playSound('se_explosion.mp3');
+            return
+        }
+
+        turnTo(this, target, 0.01);
+        moveTo(this, target, this.speed*dt);
+        this.draw();
+    }
+}
+
 class Asteroid extends SpriteSheet{
     constructor(x, y){
         super('asteroid_white_90x108px_29frames.png', x, y, 90, 108, 29, 60);
@@ -164,6 +209,19 @@ class Asteroid extends SpriteSheet{
                 playerScore.render(`SCORE:${player.score}`)
             }
         }
+
+        for(let i =0; i<player.rocketsArr.length; i++){
+            if(getDistance(this, player.rocketsArr[i])<this.size){
+                this.isExist = false;
+                player.rockets++;
+                maxAsteroids += 1;
+                ex.push(new Explosion(this.x, this.y));
+                playSound('se_explosion.mp3');
+                player.score+=3;
+                playerScore.render(`SCORE:${player.score}`)
+            }
+        }
+
 
         if(getDistance(this, player)<this.size+player.size){
             this.isExist = false;
