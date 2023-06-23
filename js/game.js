@@ -157,6 +157,7 @@ class PlayerRocket extends Sprite{
     constructor(x, y){
         super('player_rocket_30x12px.png', x, y);
         this.speed = 0.5;
+        this.direction = -90*_RAD;
         this.isExist = true;
     }
     update(dt){
@@ -207,6 +208,7 @@ class Asteroid extends SpriteSheet{
                 playSound('se_explosion.mp3');
                 player.score+=5;
                 playerScore.render(`SCORE:${player.score}`)
+                return;
             }
         }
 
@@ -219,6 +221,7 @@ class Asteroid extends SpriteSheet{
                 playSound('se_explosion.mp3');
                 player.score+=3;
                 playerScore.render(`SCORE:${player.score}`)
+                return;
             }
         }
 
@@ -228,6 +231,7 @@ class Asteroid extends SpriteSheet{
             player.addDamage(10) ;
             ex.push(new Explosion(this.x, this.y));
             playSound('se_explosion.mp3');
+            return;
             
         }
 
