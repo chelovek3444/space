@@ -25,6 +25,12 @@ const IMAGES_UPLOAD_ARR = [
     'asteroid_white_90x108px_29frames.png',
     'explosion_200x200px_16frames.png',
     'player_rocket_30x12px.png',
+    'bonus_bullets_48x48px.png',
+    'bonus_empty_48x48px.png',
+    'bonus_repair_48x48px.png',
+    'bonus_rockets_48x48px.png',
+    'bonus_scores_48x48px.png',
+    'bonus_speed_48x48px.png',
 ];
 
 // список загружаемых звуков

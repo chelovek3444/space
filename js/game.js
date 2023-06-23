@@ -178,7 +178,7 @@ class PlayerRocket extends Sprite{
             return
         }
 
-        turnTo(this, target, 0.01);
+        turnTo(this, target, 0.1);
         moveTo(this, target, this.speed*dt);
         this.draw();
     }
@@ -208,6 +208,7 @@ class Asteroid extends SpriteSheet{
                 playSound('se_explosion.mp3');
                 player.score+=5;
                 playerScore.render(`SCORE:${player.score}`)
+                bonusArr.push(new Bonus(this.x, this.y))
                 return;
             }
         }
@@ -215,12 +216,14 @@ class Asteroid extends SpriteSheet{
         for(let i =0; i<player.rocketsArr.length; i++){
             if(getDistance(this, player.rocketsArr[i])<this.size){
                 this.isExist = false;
+                player.rocketsArr[i].isExist = false;
                 player.rockets++;
                 maxAsteroids += 1;
                 ex.push(new Explosion(this.x, this.y));
                 playSound('se_explosion.mp3');
                 player.score+=3;
                 playerScore.render(`SCORE:${player.score}`)
+                bonusArr.push(new Bonus(this.x, this.y))
                 return;
             }
         }
@@ -253,7 +256,53 @@ class Explosion extends SpriteSheet{
     }
 }
 
+class Bonus extends Sprite{
+    constructor(x, y){
+        super('bonus_empty_48x48px.png', x,y);
+        this.type = this.getType();
+        this.img  = IMG['bonus_'+this.type+'_48x48px.png']
+        this.speed= 0.01;
+        this.isExist = true;
+    }
+    getType(){
+        switch( Math.ceil(Math.random()*5) ){
+            case 1:return 'bullets';
+            case 2:return 'repair';
+            case 3:return 'rockets';
+            case 4:return 'scores';
+            case 5:return 'speed';
+        }
+    }
+    update(dt){
+        this.y += this.speed*dt;
+        if(this.y-this.hh>vh){
+            this.isExist = false;
+            return;
+        }
+        if(getDistance(this, player)<player.size){
+            this.isExist = false;
+            switch(this.type){
+                case 'bullets':player.shutTimeout*=0.5;
+                return;
+                case 'repair':player.hp+=5;
+                playerHp.render(`HP:${player.hp}%`);
+                return;
+                case 'rockets':player.rockets+=1;
+                return;
+                case 'scores':player.score+=100;
+                playerScore.render(`SCORE:${player.score}`)
+                return;
+                case 'speed':player.speed*=2;
+                return;
+            }
+        }
+        this.draw()
+    }
+}
+
 let ex = []
+
+let bonusArr  = [];
 
 let maxAsteroids = 5;
 let asteroidsArr = [];
@@ -312,6 +361,9 @@ function gameLoop(dt) {
 
     for(let i = 0; i<ex.length; i++) ex[i].update(dt);
     ex = getExistsObjectsFromArr(ex);
+
+    for(let i = 0; i<bonusArr.length; i++) bonusArr[i].update(dt);
+    bonusArr = getExistsObjectsFromArr(bonusArr);
 
     playerHp.draw();
 
